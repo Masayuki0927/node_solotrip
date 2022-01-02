@@ -1,0 +1,35 @@
+<%- include('base'); %>
+
+    <div class="container">
+      <div class="container-header">
+        <h1>買い物リスト</h1>
+      </div>
+      <div class="index-table-wrapper">
+        <div class="table-head">
+          <span class="id-column">ID</span>
+          <span>買うもの</span>
+        </div>
+        <ul class="table-body">
+            <% post.forEach((item) => { %>
+                <li>
+                  <div class="item-data">
+                    <span class="id-column"><%= item.id %></span>
+                    <span class="id-column"><%= item.title %></span>
+                    <span class="name-column"><%= item.text %></span>
+                    <span class="name-column"><%= item.area %></span>
+                  </div>
+                  <div class="item-data">
+                    <form action="/delete/<%= item.id%>" method="post">
+                        <input type="submit" value="削除">
+                    </form>
+                  </div>
+                  <div class="item-data">
+                    <a href="/edit/<%= item.id %>">編集</a>
+                </div>
+                </li>
+              <% }) %>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

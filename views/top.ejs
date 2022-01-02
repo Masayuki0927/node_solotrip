@@ -1,0 +1,68 @@
+<%- include('base'); %>
+    <script src="/docs/5.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <img src = "/images/sea.jpeg">
+
+    <div class="container">
+        <div class="container-header">
+            <h1>買い物リスト</h1>
+        </div>
+        <div class="index-table-wrapper">
+            <div class="table-head">
+            <span class="id-column">ID</span>
+            <span>買うもの</span>
+            </div>
+            <ul class="table-body">
+                <% post.forEach((item) => { %>
+                    <li>
+                    <div class="item-data">
+                        <span class="id-column"><%= item.id %></span>
+                        <span class="id-column"><%= item.title %></span>
+                        <span class="name-column"><%= item.text %></span>
+                        <span class="name-column"><%= item.area %></span>
+                    </div>
+                    <div class="item-data">
+                        <form action="/delete/<%= item.id%>" method="post">
+                            <input type="submit" value="削除">
+                        </form>
+                    </div>
+                    <div class="item-data">
+                        <a href="/edit/<%= item.id %>">編集</a>
+                    </div>
+                    </li>
+                <% }) %>
+            </ul>
+        </div>
+        </div>
+
+        <main>
+            <div class="album py-5 bg-light">
+              <div class="container">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                <% post.forEach((item) => { %>
+                  <div class="col">
+                    <div class="card shadow-sm">
+                      <img src="/docs/5.1/dist/js/bootstrap.bundle.min.js" width="100%" height="225">
+                      <div class="card-body">
+                        <!-- <p class="card-text"><b>{{ item.title }}</b></p> -->
+                        <p><a href="/detail/<%= item.id%>"><b><%= item.title %></b></a></p>
+                        <div class="content" style="height:80px;">
+                        <p style="display: -webkit-box;-webkit-box-orient: vertical;-webkit-line-clamp: 3;overflow: hidden;" class="card-text"><%= item.text %></p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <!-- <div class="btn-group">
+                            <button type="button" class="btn btn-light" ><a href="{% url 'good' item.pk %}" style="text-decoration: none;">いいね{{ item.good }}</a></button>
+                          </div> -->
+                          <!-- <small class="text-muted">9 دقائق</small> -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <% }) %>
+                </div>
+              </div>
+            </div>    
+          </main>
+
+    <%- include('hooter'); %>
+  </body>
+</html>
