@@ -1,0 +1,13 @@
+<%- include("base") %>
+
+<h3>掲示版の作成</h3>
+<form action ='/create_board' method="POST">
+
+<div class="form-group">
+    <input type="text" name="title" placeholder="タイトルを入力" style="width:400px;">
+    <input style="margin-top:20px;" type="submit" value='作成'>
+</div>
+
+</form>
+
+<%- include("hooter") %>
