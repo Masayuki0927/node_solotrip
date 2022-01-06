@@ -6,6 +6,8 @@ const bcrypt = require('bcrypt')
 const session = require('express-session');
 const { DEC8_BIN } = require('mysql/lib/protocol/constants/charsets');
 const db = require('./models/index.js');
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 // const { Model } = require('sequelize/dist');
 require('date-utils');
 
@@ -26,7 +28,9 @@ if (req.session.userId === undefined) {
     res.locals.isLoggedIn = false;
 } else {
     res.locals.username = req.session.username;
+    res.locals.userid = req.session.userId;
     res.locals.isLoggedIn = true;
+    console.log('locals:',res.locals);
 }
 next();
 });
@@ -67,7 +71,6 @@ app.post('/signup', (req, res, next) => {
       if (errors.length > 0) {
         res.render('signup.ejs', { errors: errors });
       } else {
-        console.log("チェック");
         next();
       }},
     (req, res, next) => {
@@ -78,7 +81,6 @@ app.post('/signup', (req, res, next) => {
             }
         })
         .then((tmp) => {
-            console.log("チェック2");
             if (tmp.length > 0) {
                 errors.push('ユーザー登録に失敗しました');
                 res.render('signup.ejs', { errors: errors });
@@ -89,7 +91,6 @@ app.post('/signup', (req, res, next) => {
         },
     (req, res) => {
     const password = req.body.password;
-    console.log("チェック3");
     bcrypt.hash(password, 10, (error, hash) => {
         db.User.create({
             username:req.body.username,
@@ -143,7 +144,19 @@ app.get('/logout', (req, res) => {
 });
 
 
-// --------- 中身の機能 ----------
+// ------------ 中身の機能 --------------
+
+app.get('/test', (req, res) => {
+    db.User.findAll({
+        include: [{
+            model:db.User,
+            required:false
+        }]
+        }).then((result) => {
+      res.send(result);
+    })
+})
+
 
 
 app.get('/top', (req, res) => {
@@ -153,16 +166,71 @@ app.get('/top', (req, res) => {
     })
 })
 
+app.post('/search', (req, res) => {
+    const  search  = req.body.keyword;
+    db.Post.findAll({
+        where:{
+            title : {
+                [Op.like]:`%${search}%`
+            }
+        }
+    })
+    .then((result) => {
+        // res.send(result[0])
+        res.render('search.ejs',{post:result})
+    })
+});
+
+
 app.get('/detail/:id', (req, res) => {
+    console.log(res.locals.userid);
+    db.Post.findAll({
+        where:{
+            id:req.params.id
+        },
+        include:[{
+            model:db.User,
+            required:false
+        }]
+    })
+    .then((result) => {
+        // res.send(result[0])
+        res.render('detail.ejs',{post:result[0]})
+    })
+});
+
+app.get('/good/:id', (req, res) => {
     db.Post.findAll({
         where:{
             id:req.params.id
         }
     })
-    .then((result) => {
-        res.render('detail.ejs',{post:result[0]})
+        .then((test) => {
+        console.log(test[0].good);
+        db.Post.update({
+            good:test[0].good + 1
+        },
+        {
+            where:{id:req.params.id}
+        },
+        )
+        .then((tmp) => {
+            db.Post.findAll({
+                where:{
+                    id:req.params.id
+                },
+                include:[{
+                    model:db.User,
+                    required:false
+                }]
+            })
+            .then((result) => {
+            // console.log(result);
+            res.render('detail.ejs',{post:result[0]})
+            })
+        })
     })
-});
+})
 
 app.get('/new', (req, res) => {
     res.render('new.ejs');
@@ -172,9 +240,15 @@ app.post('/create', (req, res) => {
     db.Post.create({
         title:req.body.title,
         text:req.body.text,
-        area:req.body.area
+        area:req.body.area,
+        userid:req.session.userId,
+        good:1
     })
     .then((tmp) => {
+        console.log('sessionID:',req.session.userId);
+        console.log('type:',typeof(req.session.userId));
+        console.log('userID:',tmp.userid);
+        console.log('type:',typeof(tmp.userid));
         db.Post.findAll()
         .then((result) => {
         res.render('top.ejs',{post:result})
@@ -294,16 +368,12 @@ app.get('/profile/:id', (req, res) => {
         where:{
             id:req.params.id
         },
-        // include:[{
-        //     model:db.Post,
-        //     required:false
-        // }]
+        include:[{
+            model:db.Post,
+            required:false
+        }]
     })
     .then((result) => {
-        console.log('ログインID:',req.session.userId);
-        console.log('ログインID:',typeof(req.session.userId));
-        console.log('訪問先ID:',req.params.id);
-        console.log('ログインID:',typeof(req.params.id));
         if(String(req.session.userId) === req.params.id){
             res.render('mypage.ejs',{user:result[0]});
         }else{
@@ -312,6 +382,28 @@ app.get('/profile/:id', (req, res) => {
     })
 })
 
+
+app.get('/follow/:id', (req, res) => {
+    db.Follower_Followed.create({
+        followid:res.locals.userid,
+        followedid:req.params.id
+    })
+    .then((tmp) => {
+        db.User.findAll({
+            where:{
+                id:req.params.id
+            },
+            include:[{
+                model:db.Post,
+                required:false
+            }]
+        })
+        .then((result) => {
+            const follow = true
+            res.render('profile.ejs',{user:result[0], follow:follow});
+        })
+    })
+})
 
 
 

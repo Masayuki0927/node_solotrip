@@ -11,7 +11,17 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       User.hasMany(models.BoardContent);
-      // User.hasMany(models.Post);
+      User.hasMany(models.Post);
+      User.belongsToMany(models.User, {
+        as: "follower", 
+        foreignKey: "followid", 
+        through: models.Follower_Followed
+      });
+      User.belongsToMany(models.User, {
+        as: "followed", 
+        foreignKey: "followedid", 
+        through: models.Follower_Followed
+      });
     }
   };
   User.init({

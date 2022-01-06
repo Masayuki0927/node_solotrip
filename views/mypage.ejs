@@ -7,4 +7,30 @@
     <p><%= user.username %></p>
 </div>
 
+<div class="album py-5 bg-light">
+    <div class="container">
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+        <% user.Posts.forEach((item) => { %>
+            <div class="col">
+                <div class="card shadow-sm">
+                  <img src="/docs/5.1/dist/js/bootstrap.bundle.min.js" width="100%" height="225">
+                  <div class="card-body">
+                    <p><a href="/detail/<%= item.id%>"><b><%= item.title %></b></a></p>
+                    <div class="content" style="height:80px;">
+                    <p style="display: -webkit-box;-webkit-box-orient: vertical;-webkit-line-clamp: 3;overflow: hidden;" class="card-text"><%= item.text %></p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-light" ><a href="/good/<%= item.id %>" style="text-decoration: none;">いいね<%= item.good %></a></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        <% }) %>
+      </div>
+    </div>
+</div>  
+
+
 <%- include('hooter') %>

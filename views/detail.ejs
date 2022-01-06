@@ -1,7 +1,14 @@
 <%- include('base'); %>
 
+<% if (locals.userid === undefined) { %>
+    <p><%= post.User.username %></p>    
+<% } else { %>
+    <p><a href="/profile/<%= post.userid %>"><%= post.User.username %></a></p>
+<% } %>
+
 <p><%= post.id %></p>
 <p><b><%= post.title %></b></p>
+<p><a href="/good/<%= post.id %>">いいね<%= post.good %></a></p>
 <p>エリア：<%= post.area %></p>
 <p><%= post.text %></p>
 
