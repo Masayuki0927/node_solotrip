@@ -30,7 +30,6 @@ if (req.session.userId === undefined) {
     res.locals.username = req.session.username;
     res.locals.userid = req.session.userId;
     res.locals.isLoggedIn = true;
-    console.log('locals:',res.locals);
 }
 next();
 });
@@ -183,7 +182,6 @@ app.post('/search', (req, res) => {
 
 
 app.get('/detail/:id', (req, res) => {
-    console.log(res.locals.userid);
     db.Post.findAll({
         where:{
             id:req.params.id
@@ -206,7 +204,6 @@ app.get('/good/:id', (req, res) => {
         }
     })
         .then((test) => {
-        console.log(test[0].good);
         db.Post.update({
             good:test[0].good + 1
         },
@@ -225,7 +222,6 @@ app.get('/good/:id', (req, res) => {
                 }]
             })
             .then((result) => {
-            // console.log(result);
             res.render('detail.ejs',{post:result[0]})
             })
         })
@@ -336,7 +332,6 @@ app.get('/board_content/:id', (req, res) => {
 })
 
 app.post('/create_response/:id', (req, res) => {
-    console.log(req);
     db.BoardContent.create({
         text:req.body.text,
         userid:req.session.userId,
@@ -358,10 +353,56 @@ app.post('/create_response/:id', (req, res) => {
     })
 })
 
-
-app.get('/message', (req, res) => {
-    res.render('message.ejs');
+app.post('/chatroom/:id', (req, res) => {
+    db.Chatroom.create({
+    })
+    .then((result) => {
+        console.log(result);
+        db.Chatroomuser.bulkCreate([
+            {chatroomid:result.id,userid:res.locals.userid},
+            {chatroomid:result.id,userid:req.params.id}
+        ])
+        .then((tmp) => {
+            res.render('chatroom.ejs');
+        })    
+    })
 });
+
+app.get('/chatroom', (req, res) => {
+    // db.Chatroomuser.findAll({
+    //     where:{
+    //         userid:res.locals.userid
+    //     }
+    //     // include:[{
+    //     //     model:db.Chatroom,
+    //     //     required:false
+    //     // }]
+    // })
+    // .then((result) => {
+    //     // res.send(result);
+    //     res.render('chatroom.ejs',{chatroomuser:result}); 
+    // })
+    db.Chatroom.findAll({
+        include:[{
+            model:db.Chatroomuser,
+            required:false,
+        }]
+    })
+    .then((result) => {
+        res.render('chatroom.ejs',{chatroom:result});  
+        // result.findAll({
+        //     include:[{
+        //         model:db.User,
+        //         required:false,
+        //     }]
+        // })
+        // .then((test) => {
+        // res.send(test);
+        // // res.render('chatroom.ejs',{chatroom:result});  
+        // })
+    })
+});
+
 
 app.get('/profile/:id', (req, res) => {
     db.User.findAll({
@@ -377,13 +418,51 @@ app.get('/profile/:id', (req, res) => {
         if(String(req.session.userId) === req.params.id){
             res.render('mypage.ejs',{user:result[0]});
         }else{
-            res.render('profile.ejs',{user:result[0]});
+            // console.log('followid:',res.locals.userid);
+            // console.log('followedid:',req.params.id);
+            db.Follower_Followed.findAll({
+                where:{
+                    followid:res.locals.userid,
+                    followedid:req.params.id
+                }
+            })
+            .then((follow_result) => {
+                console.log('follow_result.length:',follow_result.length);
+                if(follow_result.length > 0){
+                    follow = true;
+                    db.Follower_Followed.findAll({
+                        where:{
+                            followid:req.params.id,
+                            followedid:res.locals.userid
+                        }
+                    })
+                    .then((Mutual_follow) => {
+                        console.log("test4");
+                        if(Mutual_follow.length > 0){
+                            followed = true;
+                            console.log("test0");
+                            res.render('profile.ejs',{user:result[0],follow:follow, followed:followed});
+                        }else{
+                            followed = false;
+                            console.log("test1");
+                            res.render('profile.ejs',{user:result[0],follow:follow, followed:followed});
+                        }
+                    })
+                }else{
+                    follow = false;
+                    followed = false;
+                    console.log("test2");
+                    res.render('profile.ejs',{user:result[0],follow:follow, followed:followed});
+                };
+            })
         }
     })
 })
 
 
 app.get('/follow/:id', (req, res) => {
+    backURL=req.header('Referer') || '/';
+    console.log(backURL);
     db.Follower_Followed.create({
         followid:res.locals.userid,
         followedid:req.params.id
@@ -399,12 +478,36 @@ app.get('/follow/:id', (req, res) => {
             }]
         })
         .then((result) => {
-            const follow = true
-            res.render('profile.ejs',{user:result[0], follow:follow});
+            res.redirect(backURL);
         })
     })
 })
 
+
+app.get('/unfollow/:id', (req, res) => {
+    backURL=req.header('Referer') || '/';
+    console.log(backURL);
+    db.Follower_Followed.destroy({
+        where:{
+            followid:res.locals.userid,
+            followedid:req.params.id
+        }
+     })
+     .then((tmp) => {
+        db.User.findAll({
+            where:{
+                id:req.params.id
+            },
+            include:[{
+                model:db.Post,
+                required:false
+            }]
+        })
+        .then((result) => {
+            res.redirect(backURL);
+        })
+    })
+});
 
 
 // -------------生のSQLを用いた記法-------------

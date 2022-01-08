@@ -3,7 +3,12 @@
 <div >
     <p><%= user.username %></p>
     <% if (follow == true) { %>
-        <p><a class="btn btn-secondary mb-3" href="/unfollow/<%= user.id%>" role="button">フォロー解除する</a></p>    
+        <p><a class="btn btn-secondary mb-3" href="/unfollow/<%= user.id%>" role="button">フォロー解除する</a></p> 
+        <% if (followed == true) { %>
+            <form action ="/chatroom/<%= user.id %>" method="POST" enctype="multipart/form-data">
+                <input style="margin-top:20px;" type="submit" value='チャットする'>
+            </form> 
+        <% } %>
     <% } else { %>
         <p><a class="btn btn-secondary mb-3" href="/follow/<%= user.id%>" role="button">フォローする</a></p>
     <% } %>

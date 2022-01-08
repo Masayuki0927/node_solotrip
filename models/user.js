@@ -12,6 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       User.hasMany(models.BoardContent);
       User.hasMany(models.Post);
+      User.hasMany(models.Chatroomuser);
+      User.hasMany(models.Chatmessage);
       User.belongsToMany(models.User, {
         as: "follower", 
         foreignKey: "followid", 
