@@ -8,6 +8,7 @@ const { DEC8_BIN } = require('mysql/lib/protocol/constants/charsets');
 const db = require('./models/index.js');
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
+const port = process.env.PORT || 8000;
 // const { Model } = require('sequelize/dist');
 require('date-utils');
 
@@ -619,3 +620,7 @@ app.get('/unfollow/:id', (req, res) => {
 // })
 
 app.listen(3000);
+
+server.listen(port, () => {
+    console.log("App is running on port " + port);
+});
